@@ -1,8 +1,9 @@
 use std::collections::HashSet;
 
+use crate::Feedback;
 use crate::WORD_LENGTH;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Clone, Default)]
 pub struct Pattern {
     pub characters: [Character; WORD_LENGTH],
     pub excluded: Option<HashSet<char>>,
@@ -46,9 +47,41 @@ impl Pattern {
 
         true
     }
+
+    pub fn insert_guess(&mut self, word: &str, feedback: [Feedback; WORD_LENGTH]) {
+        assert_eq!(word.len(), WORD_LENGTH);
+
+        for (i, c) in word.chars().enumerate() {
+            match feedback[i] {
+                Feedback::Gray => {
+                    let excluded = self.excluded.get_or_insert(HashSet::new());
+                    excluded.insert(c);
+                }
+                Feedback::Yellow => {
+                    if let Character::Excluding(char_excluding) = &mut self.characters[i] {
+                        let char_excluding = char_excluding.get_or_insert(HashSet::new());
+                        char_excluding.insert(c);
+                    }
+
+                    let required = self.required.get_or_insert(HashSet::new());
+                    required.insert(c);
+                }
+                Feedback::Green => {
+                    self.characters[i] = Character::Known(c);
+                }
+            }
+        }
+    }
+
+    pub fn matching_probability<'a, I>(&self, words: I, len: usize) -> f64
+    where
+        I: Iterator<Item = &'a str>,
+    {
+        words.filter(|w| self.matches_word(w)).count() as f64 / len as f64
+    }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Character {
     Known(char),
     Excluding(Option<HashSet<char>>),
