@@ -100,7 +100,7 @@ mod tests {
         use Feedback::*;
         pattern.insert_guess("apple", [Green, Yellow, Gray, Gray, Gray]);
 
-        assert!(pattern.matches_word("aspim"));
+        assert!(pattern.matches_word("asipm"));
         assert!(pattern.matches_word("asrip"));
         assert!(!pattern.matches_word("bspim"));
         assert!(!pattern.matches_word("asrim"));
