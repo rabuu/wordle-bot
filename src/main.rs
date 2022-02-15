@@ -6,12 +6,14 @@ use wordle_bot::{Bot, Feedback};
 
 const POSSIBLE_SOLUTIONS: &'static str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
-    "/wordlists/de/wordle-spielen/possible_solutions"
+    // "/wordlists/de/wordle-spielen/possible_solutions"
+    "/wordlists/en/powerlanguage/possible_solutions"
 ));
 
 const EXTRA_GUESSING_OPTIONS: &'static str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
-    "/wordlists/de/wordle-spielen/extra_guessing_options"
+    // "/wordlists/de/wordle-spielen/extra_guessing_options"
+    "/wordlists/en/powerlanguage/extra_guessing_options"
 ));
 
 fn main() {
