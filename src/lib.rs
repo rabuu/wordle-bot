@@ -64,10 +64,7 @@ impl<'a> Bot<'a> {
             let mut new_pattern = self.pattern.clone();
             new_pattern.insert_guess(word, *fb_variant);
 
-            let probability = new_pattern.matching_probability(
-                matching_solutions.clone().into_iter(),
-                matching_solutions.len(),
-            );
+            let probability = new_pattern.matching_probability(&matching_solutions);
 
             let bits = if probability > 0.0 {
                 -probability.log2()
@@ -75,22 +72,18 @@ impl<'a> Bot<'a> {
                 0.0
             };
 
-            // println!(
-            //     "DEBUG:\nPattern: {:?}\nProbability: {:?}\nBits: {:?}\nProduct: {:?}\n",
-            //     new_pattern,
-            //     probability,
-            //     bits,
-            //     probability * bits,
-            // );
-
             entropy += probability * bits;
         }
         entropy
     }
 
-    pub fn recommend_guesses(&self) -> Vec<&'a str> {
+    pub fn recommend_guesses(&self) -> Vec<(&'a str, Option<f64>)> {
         if self.count >= self.max_number_guesses {
-            return self.all_matching_solutions();
+            return self
+                .all_matching_solutions()
+                .into_iter()
+                .map(|word| (word, None))
+                .collect();
         }
 
         let mut entropy_map = HashMap::with_capacity(
@@ -116,7 +109,7 @@ impl<'a> Bot<'a> {
 
         recommendations
             .into_iter()
-            .map(|(word, _entropy)| word)
+            .map(|(word, entropy)| (word, Some(entropy)))
             .collect()
     }
 }

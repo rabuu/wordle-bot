@@ -6,38 +6,30 @@ use crate::WORD_LENGTH;
 #[derive(Debug, Clone, Default)]
 pub struct Pattern {
     pub characters: [Character; WORD_LENGTH],
-    pub excluded: Option<HashSet<char>>,
-    pub required: Option<HashSet<char>>,
+    pub required: HashSet<char>,
 }
 
 impl Pattern {
     pub fn matches_word(&self, word: &str) -> bool {
         assert_eq!(word.len(), WORD_LENGTH);
 
-        if let Some(required) = &self.required {
-            for required_char in required {
-                if !word.contains(*required_char) {
-                    return false;
-                }
+        for required_char in &self.required {
+            if !word.contains(*required_char) {
+                return false;
             }
         }
 
         for (i, character) in self.characters.iter().enumerate() {
+            let c = word.chars().nth(i).unwrap();
             match character {
-                Character::Known(c) => {
-                    if *c != word.chars().nth(i).unwrap() {
+                Character::Known(known_char) => {
+                    if c != *known_char {
                         return false;
                     }
                 }
-                Character::Excluding(local_excluded) => {
-                    let empty = HashSet::new();
-                    let all_excluded = local_excluded
-                        .as_ref()
-                        .unwrap_or(&empty)
-                        .iter()
-                        .chain(self.excluded.as_ref().unwrap_or(&empty).iter());
-                    for excluded_char in all_excluded {
-                        if *excluded_char == word.chars().nth(i).unwrap() {
+                Character::Unknown(excluding) => {
+                    for excluding_char in excluding.iter() {
+                        if c == *excluding_char {
                             return false;
                         }
                     }
@@ -51,20 +43,27 @@ impl Pattern {
     pub fn insert_guess(&mut self, word: &str, feedback: [Feedback; WORD_LENGTH]) {
         assert_eq!(word.len(), WORD_LENGTH);
 
-        for (i, c) in word.chars().enumerate() {
-            match feedback[i] {
+        for (i, fb) in feedback.into_iter().enumerate() {
+            let c = word.chars().nth(i).unwrap();
+            match fb {
                 Feedback::Gray => {
-                    let excluded = self.excluded.get_or_insert(HashSet::new());
-                    excluded.insert(c);
+                    if !self.required.contains(&c) {
+                        for character in &mut self.characters {
+                            if let Character::Unknown(excluding) = character {
+                                excluding.insert(c);
+                            }
+                        }
+                    } else {
+                        if let Character::Unknown(excluding) = &mut self.characters[i] {
+                            excluding.insert(c);
+                        }
+                    }
                 }
                 Feedback::Yellow => {
-                    if let Character::Excluding(char_excluding) = &mut self.characters[i] {
-                        let char_excluding = char_excluding.get_or_insert(HashSet::new());
-                        char_excluding.insert(c);
+                    self.required.insert(c);
+                    if let Character::Unknown(excluding) = &mut self.characters[i] {
+                        excluding.insert(c);
                     }
-
-                    let required = self.required.get_or_insert(HashSet::new());
-                    required.insert(c);
                 }
                 Feedback::Green => {
                     self.characters[i] = Character::Known(c);
@@ -73,23 +72,20 @@ impl Pattern {
         }
     }
 
-    pub fn matching_probability<'a, I>(&self, words: I, len: usize) -> f64
-    where
-        I: Iterator<Item = &'a str>,
-    {
-        words.filter(|w| self.matches_word(w)).count() as f64 / len as f64
+    pub fn matching_probability(&self, words: &[&str]) -> f64 {
+        words.iter().filter(|w| self.matches_word(w)).count() as f64 / words.len() as f64
     }
 }
 
 #[derive(Debug, Clone)]
 pub enum Character {
     Known(char),
-    Excluding(Option<HashSet<char>>),
+    Unknown(HashSet<char>),
 }
 
 impl Default for Character {
     fn default() -> Self {
-        Character::Excluding(None)
+        Character::Unknown(HashSet::new())
     }
 }
 
@@ -98,36 +94,15 @@ mod tests {
     use super::*;
 
     #[test]
-    fn simple_match() {
-        let pattern = Pattern {
-            characters: [
-                Character::Known('a'),
-                Character::default(),
-                Character::default(),
-                Character::Known('l'),
-                Character::default(),
-            ],
-            excluded: None,
-            required: None,
-        };
+    fn pattern_01() {
+        let mut pattern = Pattern::default();
 
-        assert!(pattern.matches_word("apple"));
-    }
+        use Feedback::*;
+        pattern.insert_guess("apple", [Green, Yellow, Gray, Gray, Gray]);
 
-    #[test]
-    fn local_excluded() {
-        let pattern = Pattern {
-            characters: [
-                Character::Known('a'),
-                Character::Excluding(Some(HashSet::from_iter(vec!['k', 'l']))),
-                Character::default(),
-                Character::Known('l'),
-                Character::default(),
-            ],
-            excluded: None,
-            required: None,
-        };
-
-        assert!(pattern.matches_word("apple"));
+        assert!(pattern.matches_word("aspim"));
+        assert!(pattern.matches_word("asrip"));
+        assert!(!pattern.matches_word("bspim"));
+        assert!(!pattern.matches_word("asrim"));
     }
 }

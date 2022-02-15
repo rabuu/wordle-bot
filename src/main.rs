@@ -6,12 +6,12 @@ use wordle_bot::{Bot, Feedback};
 
 const POSSIBLE_SOLUTIONS: &'static str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
-    "/wordlists/en/powerlanguage/possible_solutions"
+    "/wordlists/de/wordle-spielen/possible_solutions"
 ));
 
 const EXTRA_GUESSING_OPTIONS: &'static str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
-    "/wordlists/en/powerlanguage/extra_guessing_options"
+    "/wordlists/de/wordle-spielen/extra_guessing_options"
 ));
 
 fn main() {
@@ -34,13 +34,21 @@ fn main() {
             Some("recommend") => {
                 if let Some(n) = instructions.next() {
                     if let Ok(n) = n.parse::<usize>() {
-                        for rec in bot.recommend_guesses().iter().take(n) {
-                            println!("{}", rec);
+                        for (rec, entropy) in bot.recommend_guesses().iter().take(n) {
+                            if let Some(entropy) = entropy {
+                                println!("{} ({})", rec, entropy);
+                            } else {
+                                println!("{}", rec);
+                            }
                         }
                     } else if n == "all" {
                         let recs = bot.recommend_guesses();
-                        for rec in recs.iter() {
-                            println!("{}", rec);
+                        for (rec, entropy) in recs.iter() {
+                            if let Some(entropy) = entropy {
+                                println!("{} ({})", rec, entropy);
+                            } else {
+                                println!("{}", rec);
+                            }
                         }
                         println!("-------------\n-> {}", recs.len());
                     } else {
