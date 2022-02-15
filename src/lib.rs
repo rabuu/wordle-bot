@@ -77,7 +77,7 @@ impl<'a> Bot<'a> {
         entropy
     }
 
-    pub fn recommend_guesses(&self) -> Vec<(&'a str, Option<f64>)> {
+    pub fn recommend_guesses(&self, progress: bool) -> Vec<(&'a str, Option<f64>)> {
         if self.count >= self.max_number_guesses {
             return self
                 .all_matching_solutions()
@@ -90,13 +90,30 @@ impl<'a> Bot<'a> {
             self.possible_solutions.len() + self.extra_guessing_options.len(),
         );
 
-        for word in self
+        if progress {
+            println!();
+        }
+
+        for (i, word) in self
             .possible_solutions
             .iter()
             .chain(self.extra_guessing_options.iter())
+            .enumerate()
         {
+            if progress {
+                let percent = ((i as f32
+                    / (self.possible_solutions.len() + self.extra_guessing_options.len()) as f32)
+                    * 100.0) as usize;
+
+                print!("\r{} ({}%)", word, percent);
+            }
+
             let entropy = self.calculate_entropy(word);
             entropy_map.insert(*word, entropy);
+        }
+
+        if progress {
+            print!("\r");
         }
 
         let mut recommendations: Vec<_> = entropy_map.into_iter().collect();

@@ -34,7 +34,7 @@ fn main() {
             Some("recommend") => {
                 if let Some(n) = instructions.next() {
                     if let Ok(n) = n.parse::<usize>() {
-                        for (rec, entropy) in bot.recommend_guesses().iter().take(n) {
+                        for (rec, entropy) in bot.recommend_guesses(true).iter().take(n) {
                             if let Some(entropy) = entropy {
                                 println!("{} ({})", rec, entropy);
                             } else {
@@ -42,7 +42,7 @@ fn main() {
                             }
                         }
                     } else if n == "all" {
-                        let recs = bot.recommend_guesses();
+                        let recs = bot.recommend_guesses(true);
                         for (rec, entropy) in recs.iter() {
                             if let Some(entropy) = entropy {
                                 println!("{} ({})", rec, entropy);
@@ -113,16 +113,27 @@ fn main() {
                 Some("possible_solutions") => println!("{:?}", bot.possible_solutions),
                 Some("extra_guessing_options") => println!("{:?}", bot.extra_guessing_options),
                 obj => {
-                    eprintln!("Object {:?} is not debugable.", obj);
+                    eprintln!("Object {:?} is not debuggable.", obj);
                     eprintln!("Try `pattern`, `count`, `possible_solutions` or `extra_guessing_options` instead.");
                 }
             },
 
-            Some("help") => {
-                println!("Possible instructions:\n\nrecommend\nguess\ndebug\nexit/quit")
+            Some("reset") => {
+                bot = Bot::new(
+                    bot.possible_solutions,
+                    bot.extra_guessing_options,
+                    bot.max_number_guesses,
+                );
             }
 
             Some("quit") | Some("exit") => break,
+
+            Some("help") => {
+                println!(
+                    "Possible instructions:\n\nrecommend\nguess\ndebug\nreset\nexit/quit\nhelp"
+                )
+            }
+
             _ => eprintln!("No instruction. Enter `exit` or `quit` to exit or call `help`."),
         }
     }
