@@ -53,10 +53,8 @@ impl Pattern {
                                 excluding.insert(c);
                             }
                         }
-                    } else {
-                        if let Character::Unknown(excluding) = &mut self.characters[i] {
-                            excluding.insert(c);
-                        }
+                    } else if let Character::Unknown(excluding) = &mut self.characters[i] {
+                        excluding.insert(c);
                     }
                 }
                 Feedback::Yellow => {
