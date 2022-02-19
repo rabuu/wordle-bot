@@ -69,10 +69,6 @@ impl Pattern {
             }
         }
     }
-
-    pub fn matching_probability(&self, words: &[&str]) -> f64 {
-        words.iter().filter(|w| self.matches_word(w)).count() as f64 / words.len() as f64
-    }
 }
 
 #[derive(Debug, Clone)]

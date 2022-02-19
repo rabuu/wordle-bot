@@ -1,17 +1,11 @@
 mod pattern;
 
-use std::{
-    cmp,
-    collections::{HashMap, HashSet},
-};
-
-use combinations::Combinations;
-use permutohedron::Heap;
+use std::cmp;
+use std::collections::{HashMap, HashSet};
 
 use pattern::Pattern;
 
 pub const WORD_LENGTH: usize = 5;
-const NUMBER_FEEDBACK_VARIANTS: usize = 3_usize.pow(WORD_LENGTH as u32);
 
 pub struct Bot<'a> {
     pub possible_solutions: HashSet<&'a str>,
@@ -19,7 +13,6 @@ pub struct Bot<'a> {
     pub pattern: Pattern,
     pub max_number_guesses: usize,
     pub count: usize,
-    feedback_variants: [[Feedback; WORD_LENGTH]; NUMBER_FEEDBACK_VARIANTS],
 }
 
 impl<'a> Bot<'a> {
@@ -34,7 +27,6 @@ impl<'a> Bot<'a> {
             pattern: Pattern::default(),
             max_number_guesses,
             count: 1,
-            feedback_variants: Feedback::all_variants(),
         }
     }
 
@@ -57,23 +49,32 @@ impl<'a> Bot<'a> {
             .collect()
     }
 
+    fn guess_distribution(
+        word: &str,
+        solutions: &[&str],
+    ) -> HashMap<[Feedback; WORD_LENGTH], usize> {
+        let mut distribution = HashMap::new();
+
+        for solution in solutions {
+            let fb = Feedback::from_guess(word, solution);
+            *distribution.entry(fb).or_insert(0) += 1;
+        }
+
+        distribution
+    }
+
     pub fn calculate_entropy(&self, word: &str) -> f64 {
         let mut entropy: f64 = 0.0;
+
         let matching_solutions = self.all_matching_solutions();
-        for fb_variant in &self.feedback_variants {
-            let mut new_pattern = self.pattern.clone();
-            new_pattern.insert_guess(word, *fb_variant);
+        let distribution = Self::guess_distribution(word, &matching_solutions);
 
-            let probability = new_pattern.matching_probability(&matching_solutions);
-
-            let bits = if probability > 0.0 {
-                -probability.log2()
-            } else {
-                0.0
-            };
-
-            entropy += probability * bits;
+        for (_, v) in distribution {
+            let probability: f64 = v as f64 / matching_solutions.len() as f64;
+            let information = -probability.log2();
+            entropy += probability * information;
         }
+
         entropy
     }
 
@@ -131,7 +132,7 @@ impl<'a> Bot<'a> {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Feedback {
     Gray,
     Yellow,
@@ -139,30 +140,30 @@ pub enum Feedback {
 }
 
 impl Feedback {
-    pub fn all_variants() -> [[Feedback; WORD_LENGTH]; NUMBER_FEEDBACK_VARIANTS] {
-        let mut variants = Vec::with_capacity(NUMBER_FEEDBACK_VARIANTS);
+    pub fn from_guess(word: &str, solution: &str) -> [Self; WORD_LENGTH] {
+        assert_eq!(word.len(), WORD_LENGTH);
+        assert_eq!(solution.len(), WORD_LENGTH);
+        let n = word.len();
 
-        let combs = Combinations::new(
-            [
-                [Feedback::Gray; WORD_LENGTH],
-                [Feedback::Yellow; WORD_LENGTH],
-                [Feedback::Green; WORD_LENGTH],
-            ]
-            .concat()
-            .to_vec(),
-            WORD_LENGTH,
-        );
+        use Feedback::*;
 
-        for mut comb in combs {
-            let permut_heap = Heap::new(&mut comb);
-            for permut in permut_heap {
-                let arr: [Feedback; WORD_LENGTH] = permut.try_into().unwrap();
-                if !variants.contains(&arr) {
-                    variants.push(arr);
+        let mut feedback = [Gray; WORD_LENGTH];
+        let mut used = [false; WORD_LENGTH];
+        for i in 0..n {
+            if word.chars().nth(i).unwrap() == solution.chars().nth(i).unwrap() {
+                feedback[i] = Green;
+                used[i] = true;
+            }
+        }
+        for i in 0..n {
+            for j in 0..n {
+                if word.chars().nth(i).unwrap() == solution.chars().nth(j).unwrap() && !used[j] {
+                    feedback[i] = Yellow;
+                    used[j] = true;
                 }
             }
         }
 
-        variants.try_into().unwrap()
+        feedback
     }
 }
