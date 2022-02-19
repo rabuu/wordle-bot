@@ -7,13 +7,13 @@ use wordle_bot::{Bot, Feedback};
 
 const POSSIBLE_SOLUTIONS: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
-    // "/wordlists/wordle-spielen.de/possible_solutions"
+    // "/wordlists/6mal5.com/possible_solutions"
     "/wordlists/nytimes.com/possible_solutions"
 ));
 
 const EXTRA_GUESSING_OPTIONS: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
-    // "/wordlists/wordle-spielen.de/extra_guessing_options"
+    // "/wordlists/6mal5.com/extra_guessing_options"
     "/wordlists/nytimes.com/extra_guessing_options"
 ));
 
