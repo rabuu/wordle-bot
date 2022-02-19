@@ -7,14 +7,14 @@ use wordle_bot::{Bot, Feedback};
 
 const POSSIBLE_SOLUTIONS: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
-    // "/wordlists/de/wordle-spielen/possible_solutions"
-    "/wordlists/en/powerlanguage/possible_solutions"
+    // "/wordlists/wordle-spielen.de/possible_solutions"
+    "/wordlists/nytimes.com/possible_solutions"
 ));
 
 const EXTRA_GUESSING_OPTIONS: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
-    // "/wordlists/de/wordle-spielen/extra_guessing_options"
-    "/wordlists/en/powerlanguage/extra_guessing_options"
+    // "/wordlists/wordle-spielen.de/extra_guessing_options"
+    "/wordlists/nytimes.com/extra_guessing_options"
 ));
 
 fn main() {
