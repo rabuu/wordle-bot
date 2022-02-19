@@ -1,6 +1,6 @@
 use std::collections::HashSet;
-use std::io;
 use std::io::Write;
+use std::{env, io};
 
 use wordle_bot::WORD_LENGTH;
 use wordle_bot::{Bot, Feedback};
@@ -21,7 +21,10 @@ fn main() {
     let possible_solutions = POSSIBLE_SOLUTIONS.lines().collect::<HashSet<&str>>();
     let extra_guessing_options = EXTRA_GUESSING_OPTIONS.lines().collect::<HashSet<&str>>();
 
-    let mut bot = Bot::new(possible_solutions, extra_guessing_options);
+    let mut args = env::args().skip(1);
+    let hard_mode = args.next() == Some("hard".to_string());
+
+    let mut bot = Bot::new(possible_solutions, extra_guessing_options, hard_mode);
 
     loop {
         print!("\n[{}] Input: ", bot.count);
@@ -102,11 +105,25 @@ fn main() {
                 }
             }
 
+            Some("mode") => match instructions.next() {
+                Some("hard") => bot.hard_mode = true,
+                Some("easy") => bot.hard_mode = false,
+                Some("toggle") => bot.hard_mode = !bot.hard_mode,
+                _ => {
+                    if bot.hard_mode {
+                        println!("Mode: hard");
+                    } else {
+                        println!("Mode: easy");
+                    }
+                }
+            },
+
             Some("debug") => match instructions.next() {
                 Some("pattern") => println!("{:?}", bot.pattern),
                 Some("count") => println!("{:?}", bot.count),
                 Some("possible_solutions") => println!("{:?}", bot.possible_solutions),
                 Some("extra_guessing_options") => println!("{:?}", bot.extra_guessing_options),
+                Some("mode") | Some("hard") | Some("hard_mode") => println!("{:?}", bot.hard_mode),
                 obj => {
                     eprintln!("Object {:?} is not debuggable.", obj);
                     eprintln!("Try `pattern`, `count`, `possible_solutions` or `extra_guessing_options` instead.");
@@ -116,15 +133,27 @@ fn main() {
             Some("clear") => print!("{esc}[2J{esc}[1;1H", esc = 27 as char),
 
             Some("reset") => {
-                bot = Bot::new(bot.possible_solutions, bot.extra_guessing_options);
+                bot = Bot::new(
+                    bot.possible_solutions,
+                    bot.extra_guessing_options,
+                    bot.hard_mode,
+                );
             }
 
             Some("quit") | Some("exit") => break,
 
             Some("help") => {
-                println!(
-                    "Possible instructions:\n\nrecommend\nguess\ndebug\nreset\nexit/quit\nhelp"
-                )
+                println!("Instructions:\n");
+                println!("recommend <XY|all>");
+                println!("matching");
+                println!("guess <WORD>");
+                println!("entropy <WORD>");
+                println!("mode [hard|easy|toggle]");
+                println!("debug <OBJ>");
+                println!("clear");
+                println!("reset");
+                println!("quit|exit");
+                println!("help");
             }
 
             Some(unknown) => {

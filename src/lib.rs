@@ -13,6 +13,7 @@ pub struct Bot<'a> {
     pub possible_solutions: HashSet<&'a str>,
     pub extra_guessing_options: HashSet<&'a str>,
     pub pattern: Pattern,
+    pub hard_mode: bool,
     pub count: usize,
 }
 
@@ -20,11 +21,13 @@ impl<'a> Bot<'a> {
     pub fn new(
         possible_solutions: HashSet<&'a str>,
         extra_guessing_options: HashSet<&'a str>,
+        hard_mode: bool,
     ) -> Self {
         Bot {
             possible_solutions,
             extra_guessing_options,
             pattern: Pattern::default(),
+            hard_mode,
             count: 1,
         }
     }
@@ -81,6 +84,7 @@ impl<'a> Bot<'a> {
             .possible_solutions
             .iter()
             .chain(self.extra_guessing_options.iter())
+            .filter(|w| self.pattern.matches_word(w) || !self.hard_mode)
             .enumerate()
         {
             if progress {
