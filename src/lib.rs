@@ -13,7 +13,6 @@ pub struct Bot<'a> {
     pub possible_solutions: HashSet<&'a str>,
     pub extra_guessing_options: HashSet<&'a str>,
     pub pattern: Pattern,
-    pub max_number_guesses: usize,
     pub count: usize,
 }
 
@@ -21,13 +20,11 @@ impl<'a> Bot<'a> {
     pub fn new(
         possible_solutions: HashSet<&'a str>,
         extra_guessing_options: HashSet<&'a str>,
-        max_number_guesses: usize,
     ) -> Self {
         Bot {
             possible_solutions,
             extra_guessing_options,
             pattern: Pattern::default(),
-            max_number_guesses,
             count: 1,
         }
     }
@@ -51,25 +48,16 @@ impl<'a> Bot<'a> {
             .collect()
     }
 
-    fn guess_distribution(
-        word: &str,
-        solutions: &[&str],
-    ) -> HashMap<[Feedback; WORD_LENGTH], usize> {
-        let mut distribution = HashMap::new();
-
-        for solution in solutions {
-            let fb = Feedback::from_guess(word, solution);
-            *distribution.entry(fb).or_insert(0) += 1;
-        }
-
-        distribution
-    }
-
     pub fn calculate_entropy(&self, word: &str) -> f64 {
         let mut entropy: f64 = 0.0;
 
         let matching_solutions = self.all_matching_solutions();
-        let distribution = Self::guess_distribution(word, &matching_solutions);
+
+        let mut distribution = HashMap::new();
+        for solution in &matching_solutions {
+            let fb = Feedback::from_guess(word, solution);
+            *distribution.entry(fb).or_insert(0) += 1;
+        }
 
         for (_, v) in distribution {
             let probability: f64 = v as f64 / matching_solutions.len() as f64;
@@ -80,15 +68,7 @@ impl<'a> Bot<'a> {
         entropy
     }
 
-    pub fn recommend_guesses(&self, progress: bool) -> Vec<(&'a str, Option<f64>)> {
-        if self.count >= self.max_number_guesses {
-            return self
-                .all_matching_solutions()
-                .into_iter()
-                .map(|word| (word, None))
-                .collect();
-        }
-
+    pub fn recommend_guesses(&self, progress: bool) -> Vec<(&'a str, f64)> {
         let mut entropy_map = HashMap::with_capacity(
             self.possible_solutions.len() + self.extra_guessing_options.len(),
         );
@@ -128,8 +108,5 @@ impl<'a> Bot<'a> {
         });
 
         recommendations
-            .into_iter()
-            .map(|(word, entropy)| (word, Some(entropy)))
-            .collect()
     }
 }

@@ -21,7 +21,7 @@ fn main() {
     let possible_solutions = POSSIBLE_SOLUTIONS.lines().collect::<HashSet<&str>>();
     let extra_guessing_options = EXTRA_GUESSING_OPTIONS.lines().collect::<HashSet<&str>>();
 
-    let mut bot = Bot::new(possible_solutions, extra_guessing_options, 6);
+    let mut bot = Bot::new(possible_solutions, extra_guessing_options);
 
     loop {
         print!("\n[{}] Input: ", bot.count);
@@ -38,20 +38,12 @@ fn main() {
                 if let Some(n) = instructions.next() {
                     if let Ok(n) = n.parse::<usize>() {
                         for (rec, entropy) in bot.recommend_guesses(true).iter().take(n) {
-                            if let Some(entropy) = entropy {
-                                println!("{} ({})", rec, entropy);
-                            } else {
-                                println!("{}", rec);
-                            }
+                            println!("{} ({:.3})", rec, entropy);
                         }
                     } else if n == "all" {
                         let recs = bot.recommend_guesses(true);
                         for (rec, entropy) in recs.iter() {
-                            if let Some(entropy) = entropy {
-                                println!("{} ({})", rec, entropy);
-                            } else {
-                                println!("{}", rec);
-                            }
+                            println!("{} ({:.3})", rec, entropy);
                         }
                         println!("-------------\n-> {}", recs.len());
                     } else {
@@ -121,12 +113,10 @@ fn main() {
                 }
             },
 
+            Some("clear") => print!("{esc}[2J{esc}[1;1H", esc = 27 as char),
+
             Some("reset") => {
-                bot = Bot::new(
-                    bot.possible_solutions,
-                    bot.extra_guessing_options,
-                    bot.max_number_guesses,
-                );
+                bot = Bot::new(bot.possible_solutions, bot.extra_guessing_options);
             }
 
             Some("quit") | Some("exit") => break,
@@ -134,6 +124,13 @@ fn main() {
             Some("help") => {
                 println!(
                     "Possible instructions:\n\nrecommend\nguess\ndebug\nreset\nexit/quit\nhelp"
+                )
+            }
+
+            Some(unknown) => {
+                eprintln!(
+                    "Unknown instruction: {}\nEnter `exit` or `quit` to exit or call `help`.",
+                    unknown
                 )
             }
 
