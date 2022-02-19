@@ -1,5 +1,6 @@
 use std::collections::HashSet;
-use std::io::{self, Write};
+use std::io;
+use std::io::Write;
 
 use wordle_bot::WORD_LENGTH;
 use wordle_bot::{Bot, Feedback};
