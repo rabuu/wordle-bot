@@ -20,7 +20,7 @@ fn main() {
 
     loop {
         let matching = bot.all_matching_solutions();
-        if matching.len() == 0 {
+        if matching.is_empty() {
             println!("There is no word that matches the pattern :(");
         } else if matching.len() == 1 {
             println!(
@@ -30,11 +30,7 @@ fn main() {
         }
 
         print!("\n[{}] > ", bot.count);
-        let _ = io::stdout().flush();
-        let mut input = String::new();
-        io::stdin()
-            .read_line(&mut input)
-            .expect("Did not enter correct string");
+        let input = get_user_input().expect("Bad input");
 
         let mut instructions = input.split_whitespace();
 
@@ -77,23 +73,8 @@ fn main() {
                         eprintln!("Length is not {}.", WORD_LENGTH);
                         continue;
                     }
-
                     let mut feedback = [Feedback::Gray; WORD_LENGTH];
-                    for (i, fb) in feedback.iter_mut().enumerate().take(WORD_LENGTH) {
-                        print!("The {}. character is (GRAY/[y]ellow/[g]reen): ", i + 1);
-                        let _ = io::stdout().flush();
-                        let mut input = String::new();
-                        io::stdin()
-                            .read_line(&mut input)
-                            .expect("Did not enter correct string");
-
-                        match input.trim_end() {
-                            "yellow" | "y" => *fb = Feedback::Yellow,
-                            "green" | "g" => *fb = Feedback::Green,
-                            _ => (),
-                        }
-                    }
-
+                    get_feedback_from_user(&mut feedback);
                     bot.guess(word, feedback);
                 } else {
                     eprintln!("Please pass the word you want to insert: `guess WORD`");
@@ -172,4 +153,88 @@ fn main() {
             _ => eprintln!("No instruction. Enter `exit` or `quit` to exit or call `help`."),
         }
     }
+}
+
+fn get_user_input() -> io::Result<String> {
+    let _ = io::stdout().flush();
+    let mut input = String::new();
+    let _ = io::stdin().read_line(&mut input)?;
+
+    Ok(input)
+}
+
+fn get_feedback_from_user(feedback: &mut [Feedback; WORD_LENGTH]) {
+    use Feedback::*;
+    let mut ptr = 0;
+    while ptr < WORD_LENGTH {
+        print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
+        print_feedback(feedback);
+
+        for _ in 0..ptr {
+            print!("  ");
+        }
+        println!(r"/\");
+
+        for _ in 0..ptr {
+            print!("  ");
+        }
+
+        let input = get_user_input().expect("Bad input");
+
+        match input.to_lowercase().trim() {
+            "" | "gray" => ptr += 1,
+            "y" | "yellow" => {
+                feedback[ptr] = Yellow;
+                ptr += 1;
+            }
+            "g" | "green" => {
+                feedback[ptr] = Green;
+                ptr += 1;
+            }
+            "reset" => {
+                for fb in feedback.iter_mut() {
+                    *fb = Gray;
+                }
+                ptr = 0;
+            }
+            "back" => {
+                ptr -= 1;
+            }
+            "finish" => {
+                break;
+            }
+            unknown => {
+                eprintln!("Unknown option: {}", unknown);
+            }
+        }
+
+        println!();
+
+        if ptr == WORD_LENGTH {
+            print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
+            print_feedback(feedback);
+            print!("Is that correct? (Y/n) ");
+            let input = get_user_input().expect("Bad input");
+            if input.to_lowercase().trim() == "n" || input.to_lowercase().trim() == "no" {
+                for fb in feedback.iter_mut() {
+                    *fb = Gray;
+                }
+                ptr = 0;
+                println!();
+            }
+        }
+    }
+}
+
+fn print_feedback(feedback: &[Feedback; WORD_LENGTH]) {
+    use Feedback::*;
+    for fb in feedback.iter() {
+        let printable = match fb {
+            Gray => "⬛️",
+            Yellow => "🟨",
+            Green => "🟩",
+        };
+        print!("{}", printable);
+    }
+    println!();
 }
