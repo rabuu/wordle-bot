@@ -182,7 +182,7 @@ fn get_feedback_from_user(feedback: &mut [Feedback; WORD_LENGTH]) {
     let mut ptr = 0;
     while ptr < WORD_LENGTH {
         print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
-        println!("[y]ellow, [g]reen, [b]ack, [f]inish, [r]eset or leave it gray?\n");
+        println!("[y]ellow, [g]reen, [b]ack, [f]inish, [r]eset or [l]eave it gray?\n");
         print_feedback(feedback);
 
         for _ in 0..ptr {
@@ -197,7 +197,11 @@ fn get_feedback_from_user(feedback: &mut [Feedback; WORD_LENGTH]) {
         let input = get_user_input().expect("Bad input");
 
         match input.to_lowercase().trim() {
-            "" | "gray" => ptr += 1,
+            "" => ptr += 1,
+            "l" | "leave" | "gray" => {
+                feedback[ptr] = Gray;
+                ptr += 1;
+            }
             "y" | "yellow" => {
                 feedback[ptr] = Yellow;
                 ptr += 1;
