@@ -1,3 +1,5 @@
+mod wordlists;
+
 use std::collections::HashSet;
 use std::io::Write;
 use std::{env, io};
@@ -5,17 +7,7 @@ use std::{env, io};
 use wordle_bot::WORD_LENGTH;
 use wordle_bot::{Bot, Feedback};
 
-const POSSIBLE_SOLUTIONS: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    // "/wordlists/6mal5.com/possible_solutions"
-    "/wordlists/nytimes.com/possible_solutions"
-));
-
-const EXTRA_GUESSING_OPTIONS: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    // "/wordlists/6mal5.com/extra_guessing_options"
-    "/wordlists/nytimes.com/extra_guessing_options"
-));
+use wordlists::{EXTRA_GUESSING_OPTIONS, POSSIBLE_SOLUTIONS};
 
 fn main() {
     let possible_solutions = POSSIBLE_SOLUTIONS.lines().collect::<HashSet<&str>>();
@@ -27,7 +19,17 @@ fn main() {
     let mut bot = Bot::new(possible_solutions, extra_guessing_options, hard_mode);
 
     loop {
-        print!("\n[{}] Input: ", bot.count);
+        let matching = bot.all_matching_solutions();
+        if matching.len() == 0 {
+            println!("There is no word that matches the pattern :(");
+        } else if matching.len() == 1 {
+            println!(
+                "There is only one word that matches the pattern:\n{}",
+                matching[0]
+            );
+        }
+
+        print!("\n[{}] > ", bot.count);
         let _ = io::stdout().flush();
         let mut input = String::new();
         io::stdin()
@@ -38,27 +40,31 @@ fn main() {
 
         match instructions.next() {
             Some("recommend") => {
-                if let Some(n) = instructions.next() {
-                    if let Ok(n) = n.parse::<usize>() {
-                        for (rec, entropy) in bot.recommend_guesses(true).iter().take(n) {
-                            println!("{} ({:.3})", rec, entropy);
+                let n: Option<usize> = match instructions.next() {
+                    Some(arg) => match arg.parse() {
+                        Ok(num) => Some(num),
+                        Err(_) => {
+                            if arg == "all" {
+                                None
+                            } else {
+                                eprintln!("Number could not be parsed");
+                                continue;
+                            }
                         }
-                    } else if n == "all" {
-                        let recs = bot.recommend_guesses(true);
-                        for (rec, entropy) in recs.iter() {
-                            println!("{} ({:.3})", rec, entropy);
-                        }
-                        println!("-------------\n-> {}", recs.len());
-                    } else {
-                        eprintln!("Not a valid number. Pass a number or `all`.");
-                    }
-                } else {
-                    eprintln!("Please pass a number: `recommend XY`");
+                    },
+                    None => Some(10),
+                };
+
+                let recs = bot.recommend_guesses(true);
+                let n = if let Some(n) = n { n } else { recs.len() };
+
+                for (rec, entropy) in recs.into_iter().take(n) {
+                    println!("{} ({:.3})", rec, entropy);
                 }
+                println!("-------------\n-> {}", n);
             }
 
             Some("matching") => {
-                let matching = bot.all_matching_solutions();
                 for solution in &matching {
                     println!("{}", solution);
                 }
