@@ -131,7 +131,7 @@ fn main() {
 
             Some("help") => {
                 println!("Instructions:\n");
-                println!("recommend <XY|all>");
+                println!("recommend [XY|all]");
                 println!("matching");
                 println!("guess <WORD>");
                 println!("entropy <WORD>");
