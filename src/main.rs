@@ -93,9 +93,22 @@ fn main() {
             }
 
             Some("mode") => match instructions.next() {
-                Some("hard") => bot.hard_mode = true,
-                Some("easy") => bot.hard_mode = false,
-                Some("toggle") => bot.hard_mode = !bot.hard_mode,
+                Some("hard") => {
+                    bot.hard_mode = true;
+                    println!("Mode: hard");
+                }
+                Some("easy") => {
+                    bot.hard_mode = false;
+                    println!("Mode: easy");
+                }
+                Some("toggle") => {
+                    bot.hard_mode = !bot.hard_mode;
+                    if bot.hard_mode {
+                        println!("Mode: hard");
+                    } else {
+                        println!("Mode: easy");
+                    }
+                }
                 _ => {
                     if bot.hard_mode {
                         println!("Mode: hard");
