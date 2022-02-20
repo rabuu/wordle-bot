@@ -13,12 +13,12 @@ Currently, the word lists are included at *compile* time. This leads to a faster
 Therefore, however, the word lists must also be specified at compile time.
 This done using *features*. These are specified in the [manifest](Cargo.toml) and set [here](src/wordlists.rs).
 
-To compile with the lists from [nytimes.com](https://www.nytimes.com/games/wordle/index.html):
+To compile with the default lists from [nytimes.com](https://www.nytimes.com/games/wordle/index.html):
 ```console
-$ cargo build --features=nytimes
+$ cargo build
 ```
 
-To compile with the lists from [6mal5.com](https://6mal5.com/):
+To compile with the german lists from [6mal5.com](https://6mal5.com/):
 ```console
 $ cargo build --features=6mal5
 ```

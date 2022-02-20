@@ -6,7 +6,4 @@ edition = "2021"
 [dependencies]
 
 [features]
-default = []
-
-nytimes = []
 6mal5 = []
