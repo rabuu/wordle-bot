@@ -74,7 +74,7 @@ fn main() {
                         eprintln!("Length is not {}.", WORD_LENGTH);
                         continue;
                     }
-                    let mut feedback = [Feedback::Gray; WORD_LENGTH];
+                    let mut feedback = [Feedback::Purple; WORD_LENGTH];
                     get_feedback_from_user(&mut feedback);
                     bot.guess(word, feedback);
                 } else {
@@ -182,7 +182,7 @@ fn get_feedback_from_user(feedback: &mut [Feedback; WORD_LENGTH]) {
     let mut ptr = 0;
     while ptr < WORD_LENGTH {
         print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
-        println!("[y]ellow, [g]reen, [b]ack, [f]inish, [r]eset or [l]eave it gray?\n");
+        println!("[p]urple, [y]ellow, [g]reen, [b]ack, [f]inish, [r]eset, enter\n");
         print_feedback(feedback);
 
         for _ in 0..ptr {
@@ -198,8 +198,8 @@ fn get_feedback_from_user(feedback: &mut [Feedback; WORD_LENGTH]) {
 
         match input.to_lowercase().trim() {
             "" => ptr += 1,
-            "l" | "leave" | "gray" => {
-                feedback[ptr] = Gray;
+            "p" | "purple" => {
+                feedback[ptr] = Purple;
                 ptr += 1;
             }
             "y" | "yellow" => {
@@ -212,7 +212,7 @@ fn get_feedback_from_user(feedback: &mut [Feedback; WORD_LENGTH]) {
             }
             "r" | "reset" => {
                 for fb in feedback.iter_mut() {
-                    *fb = Gray;
+                    *fb = Purple;
                 }
                 ptr = 0;
             }
@@ -234,7 +234,7 @@ fn get_feedback_from_user(feedback: &mut [Feedback; WORD_LENGTH]) {
             let input = get_user_input().expect("Bad input");
             if input.to_lowercase().trim() == "n" || input.to_lowercase().trim() == "no" {
                 for fb in feedback.iter_mut() {
-                    *fb = Gray;
+                    *fb = Purple;
                 }
                 ptr = 0;
                 println!();
@@ -247,7 +247,7 @@ fn print_feedback(feedback: &[Feedback; WORD_LENGTH]) {
     use Feedback::*;
     for fb in feedback.iter() {
         let printable = match fb {
-            Gray => "⬛️",
+            Purple => "🟪",
             Yellow => "🟨",
             Green => "🟩",
         };

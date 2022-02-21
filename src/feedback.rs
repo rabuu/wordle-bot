@@ -2,7 +2,7 @@ use crate::WORD_LENGTH;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Feedback {
-    Gray,
+    Purple,
     Yellow,
     Green,
 }
@@ -15,7 +15,7 @@ impl Feedback {
 
         use Feedback::*;
 
-        let mut feedback = [Gray; WORD_LENGTH];
+        let mut feedback = [Purple; WORD_LENGTH];
         let mut used = [false; WORD_LENGTH];
         for i in 0..n {
             if word.chars().nth(i).unwrap() == solution.chars().nth(i).unwrap() {

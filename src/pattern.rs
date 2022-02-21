@@ -46,7 +46,7 @@ impl Pattern {
         for (i, fb) in feedback.into_iter().enumerate() {
             let c = word.chars().nth(i).unwrap();
             match fb {
-                Feedback::Gray => {
+                Feedback::Purple => {
                     if !self.required.contains(&c) {
                         for character in &mut self.characters {
                             if let Character::Unknown(excluding) = character {
@@ -92,7 +92,7 @@ mod tests {
         let mut pattern = Pattern::default();
 
         use Feedback::*;
-        pattern.insert_guess("apple", [Green, Yellow, Gray, Gray, Gray]);
+        pattern.insert_guess("apple", [Green, Yellow, Purple, Purple, Purple]);
 
         assert!(pattern.matches_word("asipm"));
         assert!(pattern.matches_word("asrip"));
