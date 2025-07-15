@@ -56,14 +56,14 @@ fn main() {
                 let n = if let Some(n) = n { n } else { recs.len() };
 
                 for (rec, entropy) in recs.into_iter().take(n) {
-                    println!("{} ({:.3})", rec, entropy);
+                    println!("{rec} ({entropy:.3})");
                 }
-                println!("-------------\n-> {}", n);
+                println!("-------------\n-> {n}");
             }
 
             Some("matching") => {
                 for solution in &matching {
-                    println!("{}", solution);
+                    println!("{solution}");
                 }
                 println!("-------------\n-> {}", matching.len());
             }
@@ -71,7 +71,7 @@ fn main() {
             Some("guess") => {
                 if let Some(word) = instructions.next() {
                     if word.len() != WORD_LENGTH {
-                        eprintln!("Length is not {}.", WORD_LENGTH);
+                        eprintln!("Length is not {WORD_LENGTH}.");
                         continue;
                     }
                     let mut feedback = [Feedback::Purple; WORD_LENGTH];
@@ -85,7 +85,7 @@ fn main() {
             Some("entropy") => {
                 if let Some(word) = instructions.next() {
                     if word.len() != WORD_LENGTH {
-                        eprintln!("Length is not {}.", WORD_LENGTH);
+                        eprintln!("Length is not {WORD_LENGTH}.");
                         continue;
                     }
 
@@ -126,7 +126,7 @@ fn main() {
                 Some("extra_guessing_options") => println!("{:?}", bot.extra_guessing_options),
                 Some("mode") | Some("hard") | Some("hard_mode") => println!("{:?}", bot.hard_mode),
                 obj => {
-                    eprintln!("Object {:?} is not debuggable.", obj);
+                    eprintln!("Object {obj:?} is not debuggable.");
                     eprintln!("Try `pattern`, `count`, `possible_solutions` or `extra_guessing_options` instead.");
                 }
             },
@@ -159,8 +159,7 @@ fn main() {
 
             Some(unknown) => {
                 eprintln!(
-                    "Unknown instruction: {}\nEnter `exit` or `quit` to exit or call `help`.",
-                    unknown
+                    "Unknown instruction: {unknown}\nEnter `exit` or `quit` to exit or call `help`."
                 )
             }
 
@@ -251,7 +250,7 @@ fn print_feedback(feedback: &[Feedback; WORD_LENGTH]) {
             Yellow => "🟨",
             Green => "🟩",
         };
-        print!("{}", printable);
+        print!("{printable}");
     }
     println!();
 }

@@ -92,7 +92,7 @@ impl<'a> Bot<'a> {
                     / (self.possible_solutions.len() + self.extra_guessing_options.len()) as f32)
                     * 100.0) as usize;
 
-                print!("\r{} ({}%)", word, percent);
+                print!("\r{word} ({percent}%)");
             }
 
             let entropy = self.calculate_entropy(word);
